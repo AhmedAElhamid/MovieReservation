@@ -7,17 +7,23 @@ import Models.Movie;
 import Models.Reservation;
 import Models.ShowTime;
 import Models.Ticket;
+import Utils.FileUtils;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -57,6 +63,9 @@ public class Controller {
     private ChoiceBox<String> movies;
 
     @FXML
+    private ChoiceBox<String> categories;
+
+    @FXML
     private ChoiceBox<String> periods;
 
     @FXML
@@ -79,12 +88,35 @@ public class Controller {
         Connection connection = new ConnectionUtils().getConnection();
         db = new DatabaseUtils(connection);
         SeatsReserved = new ArrayList<>();
-        SeatsReserved.add("A2");
         SeatsSelected = new ArrayList<>();
+        initializeCategories();
         initializeSeats();
         initializeMovies();
         initializePeriods();
         initializeDatePicker();
+    }
+
+    private void initializeCategories() {
+        for (String category:
+                db.GetCategories()) {
+            categories.getItems().add(category);
+        }
+        categories.setOnAction(actionEvent -> {
+            if(categories.getValue().equals("All Movies") || categories.getValue() == null || categories.getValue().length() == 0){
+                initializeMovies();
+            }else{
+                filterMovies();
+            }
+        });
+    }
+
+    private void filterMovies() {
+        ArrayList<Movie> moviesFiltered = db.GetMoviesByCategory(categories.getValue());
+        movies.getItems().clear();
+        for (Movie movie:
+                moviesFiltered) {
+            movies.getItems().add(movie.getMovieName());
+        }
     }
 
     private void initializePeriods() {
@@ -98,6 +130,7 @@ public class Controller {
     }
 
     private void initializeMovies() {
+        movies.getItems().clear();
         ArrayList<Movie> Movies = db.GetMovies();
         for (Movie movie:
              Movies) {
@@ -162,6 +195,7 @@ public class Controller {
         String movieName = movies.getValue();
         String period = periods.getValue();
         LocalDate dateSelected = date.getValue();
+        LocalDate now = LocalDate.now();
         if(movieName == null || movieName.length() == 0)
         {
             movieError.setText("Please Select the movie");
@@ -169,9 +203,9 @@ public class Controller {
         }else{
             movieError.setText("");
         }
-        if(dateSelected == null)
+        if(dateSelected == null || dateSelected.isBefore(now))
         {
-            dateError.setText("Please Select the date");
+            dateError.setText("Please Select a valid date");
             return 0;
         }else{
             dateError.setText("");
@@ -192,6 +226,7 @@ public class Controller {
                  SeatsSelected) {
                 Ticket ticket = new Ticket(movieName,period,dateSelected,seat);
                 System.out.println(ticket.getTicket());
+                FileUtils.writeToFile(ticket.getTicket(),seat,"tickets");
             }
         }
         return 1;
@@ -243,6 +278,7 @@ public class Controller {
                 removeStyleClasses(seat);
                 seat.getStyleClass().add("available");
             }
+        SeatsSelected.clear();
     }
 
     private void addSeatsToDatabase() {
@@ -257,12 +293,24 @@ public class Controller {
         return SeatsCharacters[row] + "" + column;
     }
 
-    public void handleCheck(ActionEvent actionEvent) {
-        checkReservation();
-    }
+//    public void handleCheck(ActionEvent actionEvent) {
+//        checkReservation();
+//    }
     public void removeStyleClasses(Node seat){
         seat.getStyleClass().remove("available");
         seat.getStyleClass().remove("reserved");
         seat.getStyleClass().remove("selecting");
+    }
+
+    public void handleSwitchToChartScene(ActionEvent actionEvent) throws IOException {
+        Parent root = FXMLLoader.load(getClass().getResource("/fxml/SummaryReport.fxml"));
+        Stage stage = (Stage) ((Node)actionEvent.getSource()).getScene().getWindow();
+        stage.setScene(new Scene(root, 850, 800));
+    }
+
+    public void handleSwitchToAddMovieScene(ActionEvent actionEvent) throws IOException {
+        Parent root = FXMLLoader.load(getClass().getResource("/fxml/AddMovie.fxml"));
+        Stage stage = (Stage) ((Node)actionEvent.getSource()).getScene().getWindow();
+        stage.setScene(new Scene(root, 850, 800));
     }
 }

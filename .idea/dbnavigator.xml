@@ -26,7 +26,7 @@
     <show-object-properties value="true" />
     <loaded-nodes>
       <connection connection-id="fc75afb4-71e0-4fea-9d58-de9f4ddac894">
-        <schema name="MovieReservation" object-types="table, view, function, column" />
+        <schema name="MovieReservation" object-types="table, view, procedure, function, constraint, index, column, dataset trigger" />
       </connection>
     </loaded-nodes>
   </component>
@@ -58,6 +58,8 @@ SELECT * FROM `ShowTime` INNER JOIN `Movies` WHERE ShowTime.MovieName = Movies.M
 SELECT * FROM `ShowTime` WHERE `MovieName`='Stand By Me'and `ShowDate` = '2021-06-16' and `ShowPeriod` = '07:00 PM';
 
 SELECT * FROM `Movies`;
+
+SELECT Count(*) FROM `ShowTime` WHERE `ShowPeriod` = '09:00 PM';
 
 SELECT DISTINCT MovieName, Category FROM `Movies`]]></console>
     </connection>

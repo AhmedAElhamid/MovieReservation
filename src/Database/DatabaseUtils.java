@@ -54,6 +54,39 @@ public class DatabaseUtils {
         }
         return movies;
     }
+    public ArrayList<Movie> GetMoviesByCategory(String category){
+        ArrayList<Movie> movies = new ArrayList<>();
+        try {
+            Statement statement=connection.createStatement();
+            String sql="SELECT DISTINCT MovieName, Category FROM `Movies` WHERE Category = '"+category+"';";
+            ResultSet resultSet=statement.executeQuery(sql);
+            String movieName;
+            String movieCategory;
+            while (resultSet.next()){
+                movieName = resultSet.getString("MovieName");
+                movieCategory = resultSet.getString("Category");
+                movies.add(new Movie(movieName,movieCategory));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return movies;
+    }
+    public ArrayList<String> GetCategories(){
+        ArrayList<String> categories = new ArrayList<>();
+        try {
+            Statement statement=connection.createStatement();
+            String sql="SELECT DISTINCT Category FROM `Movies`;";
+            ResultSet resultSet=statement.executeQuery(sql);
+            String movieCategory;
+            while (resultSet.next()){
+                categories.add(resultSet.getString("Category"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return categories;
+    }
     public ArrayList<String> GetReservations(ShowTime showTime){
         ArrayList<String> chairsReserved = new ArrayList<>();
         try {
@@ -93,5 +126,32 @@ public class DatabaseUtils {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public int GetPeriodReservationsCount(String period){
+        try {
+            Statement statement=connection.createStatement();
+            String sql="SELECT Count(*) FROM `ShowTime` WHERE `ShowPeriod` = '"+period+"';";
+            ResultSet resultSet=statement.executeQuery(sql);
+            if (resultSet.next()){
+                return Integer.parseInt(resultSet.getString("Count(*)"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    public int GetNumberOfSoldSeatsPerMovie(String movieName){
+        try {
+            Statement statement=connection.createStatement();
+            String sql="SELECT Count(*) FROM `ShowTime` WHERE `MovieName` = '"+movieName+"';";
+            ResultSet resultSet=statement.executeQuery(sql);
+            if (resultSet.next()){
+                return Integer.parseInt(resultSet.getString("Count(*)"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }
