@@ -1,0 +1,17 @@
+
+
+.available{
+    -fx-background-color: #05962b
+}
+
+.reserved{
+    -fx-background-color: #ff0000
+}
+
+.selecting{
+    -fx-background-color: #0000FF
+}
+
+.error{
+    -fx-fill: #ff0000
+}
